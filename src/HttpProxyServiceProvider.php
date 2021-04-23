@@ -7,7 +7,7 @@ use Firevel\HttpProxy\HttpProxy;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
-class HttpProxyServiceProvider  extends ServiceProvider
+class HttpProxyServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
@@ -32,7 +32,7 @@ class HttpProxyServiceProvider  extends ServiceProvider
     {
         $this->publishes(
             [
-                __DIR__.'/../config/proxy.php' => config_path('proxy.php')
+                __DIR__.'/../config/proxy.php' => config_path('proxy.php'),
             ],
             'config'
         );
@@ -48,4 +48,3 @@ class HttpProxyServiceProvider  extends ServiceProvider
         return [HttpProxy::class];
     }
 }
-
