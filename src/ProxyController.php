@@ -4,10 +4,10 @@ namespace Firevel\HttpProxy;
 
 use App\Http\Controllers\Controller;
 use Firevel\HttpProxy\HttpProxy;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 
 class ProxyController extends BaseController
