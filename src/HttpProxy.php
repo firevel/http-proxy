@@ -2,8 +2,8 @@
 
 namespace Firevel\HttpProxy;
 
-use Exception;
 use Config;
+use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
@@ -27,6 +27,7 @@ class HttpProxy
         if (empty($this->client)) {
             $this->client = new Client();
         }
+
         return $this->client;
     }
 
@@ -48,17 +49,17 @@ class HttpProxy
      */
     public function getEndpointConfigurationByRouteName($routeName)
     {
-    	$endpoint = config('proxy.default');
+        $endpoint = config('proxy.default');
 
-    	if (! empty($routeName) && (strpos($routeName, ':') !== false)) {
-    		$endpoint = strtok($routeName, ':');
-    	}
+        if (! empty($routeName) && (strpos($routeName, ':') !== false)) {
+            $endpoint = strtok($routeName, ':');
+        }
 
-    	if (! Config::has("proxy.endpoints.{$endpoint}")) {
-    		throw new Exception("Missing {$endpoint} endpoint configuration.");
-    	}
+        if (! Config::has("proxy.endpoints.{$endpoint}")) {
+            throw new Exception("Missing {$endpoint} endpoint configuration.");
+        }
 
-    	return Config::get("proxy.endpoints.{$endpoint}");
+        return Config::get("proxy.endpoints.{$endpoint}");
     }
 
     /**
@@ -68,14 +69,14 @@ class HttpProxy
      */
     public function forwardRequest($url, Request $request)
     {
-        $routeName =  $request->route()->getName();
+        $routeName = $request->route()->getName();
 
         $endpointConfiguration = $this->getEndpointConfigurationByRouteName($routeName);
 
         $options = [];
         $options['http_errors'] = false;
 
-        $options['headers'] =  array_intersect_key(
+        $options['headers'] = array_intersect_key(
             $request->header(),
             array_fill_keys($endpointConfiguration['allowed_headers'], '')
         );
@@ -93,24 +94,24 @@ class HttpProxy
                 break;
         }
 
-        if (!empty($routeName)) {
-            event('proxy.request: '. $routeName, [$request]);
+        if (! empty($routeName)) {
+            event('proxy.request: '.$routeName, [$request]);
         }
 
         $response = $this->getClient()->request(
             $request->method(),
-            rtrim($endpointConfiguration['url'], '/') . '/' . ltrim($url, '/'),
+            rtrim($endpointConfiguration['url'], '/').'/'.ltrim($url, '/'),
             $options
         );
 
         $response->getBody()->rewind();
 
-        if (!empty($routeName)) {
-            event('proxy.response: '. $routeName, [$response, $request]);
+        if (! empty($routeName)) {
+            event('proxy.response: '.$routeName, [$response, $request]);
         }
 
         if ($response->getStatusCode() >= 300 || $response->getStatusCode() < 200) {
-            event('proxy.error: '. ($routeName ?? $request->url()), [$response, $request]);
+            event('proxy.error: '.($routeName ?? $request->url()), [$response, $request]);
         }
 
         $response->getBody()->rewind();
