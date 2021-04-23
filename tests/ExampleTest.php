@@ -2,6 +2,7 @@
 
 namespace Firevel\HttpProxy\Tests;
 
+use Config;
 use Firevel\HttpProxy\HttpProxy;
 use Firevel\HttpProxy\ProxyController;
 use GuzzleHttp\Client;
@@ -9,36 +10,35 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Event;
-use Config;
 use Route;
 
 class ExampleTest extends TestCase
-	{
-	/**
-	 * Define routes setup.
-	 *
-	 * @param  \Illuminate\Routing\Router  $router
-	 *
-	 * @return void
-	 */
-	protected function defineRoutes($router)
-	{
-		Route::get('/phpunit-get-proxy-test', [ProxyController::class, 'proxy'])->name('get-test');
-		Route::post('/phpunit-post-proxy-test', [ProxyController::class, 'proxy']);
-		Route::patch('/phpunit-post-proxy-test', [ProxyController::class, 'proxy']);
-		Route::get('/phpunit-endpoint-get-proxy-test', [ProxyController::class, 'proxy'])->name('alternative:test');
-	}
+{
+    /**
+     * Define routes setup.
+     *
+     * @param  \Illuminate\Routing\Router  $router
+     *
+     * @return void
+     */
+    protected function defineRoutes($router)
+    {
+        Route::get('/phpunit-get-proxy-test', [ProxyController::class, 'proxy'])->name('get-test');
+        Route::post('/phpunit-post-proxy-test', [ProxyController::class, 'proxy']);
+        Route::patch('/phpunit-post-proxy-test', [ProxyController::class, 'proxy']);
+        Route::get('/phpunit-endpoint-get-proxy-test', [ProxyController::class, 'proxy'])->name('alternative:test');
+    }
 
-	/**
-	 * Test GET call.
-	 *
-	 * @return void
-	 */
+    /**
+     * Test GET call.
+     *
+     * @return void
+     */
     public function testGetRoute()
     {
-    	Event::fake();
+        Event::fake();
 
-    	Config::set('proxy.endpoints.default.url', 'http://test.com//');
+        Config::set('proxy.endpoints.default.url', 'http://test.com//');
 
         // Mock client
         $mock = new MockHandler([
@@ -50,11 +50,11 @@ class ExampleTest extends TestCase
         $response = $this->call('GET', '/phpunit-get-proxy-test');
         $request = $mock->getLastRequest();
 
-	    $this->assertEquals(200, $response->status());
-	    $this->assertEquals('test.com', $request->getUri()->getHost());
-	    $this->assertEquals('GET', $request->getMethod());
-	    Event::assertDispatched('proxy.request: get-test');
-	    Event::assertDispatched('proxy.response: get-test');
+        $this->assertEquals(200, $response->status());
+        $this->assertEquals('test.com', $request->getUri()->getHost());
+        $this->assertEquals('GET', $request->getMethod());
+        Event::assertDispatched('proxy.request: get-test');
+        Event::assertDispatched('proxy.response: get-test');
     }
 
     /**
@@ -90,7 +90,7 @@ class ExampleTest extends TestCase
      */
     public function testGetRouteError()
     {
-    	Event::fake();
+        Event::fake();
         // 501 to avoid positive on regular 500
         $mock = new MockHandler([
             new Response(501, ['Content-Length' => 0], '{"data": []}'),
@@ -101,8 +101,8 @@ class ExampleTest extends TestCase
 
         $response = $this->call('GET', '/phpunit-get-proxy-test');
 
-	    $this->assertEquals(501, $response->status());
-	    Event::assertDispatched('proxy.error: get-test');
+        $this->assertEquals(501, $response->status());
+        Event::assertDispatched('proxy.error: get-test');
     }
 
     /**
