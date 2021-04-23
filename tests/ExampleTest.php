@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Support\Facades\Event;
 use Config;
 use Route;
 
@@ -22,7 +23,7 @@ class ExampleTest extends TestCase
 	 */
 	protected function defineRoutes($router)
 	{
-		Route::get('/phpunit-get-proxy-test', [ProxyController::class, 'proxy']);
+		Route::get('/phpunit-get-proxy-test', [ProxyController::class, 'proxy'])->name('get-test');
 		Route::post('/phpunit-post-proxy-test', [ProxyController::class, 'proxy']);
 		Route::patch('/phpunit-post-proxy-test', [ProxyController::class, 'proxy']);
 		Route::get('/phpunit-endpoint-get-proxy-test', [ProxyController::class, 'proxy'])->name('alternative:test');
@@ -35,6 +36,8 @@ class ExampleTest extends TestCase
 	 */
     public function testGetRoute()
     {
+    	Event::fake();
+
     	Config::set('proxy.endpoints.default.url', 'http://test.com//');
 
         // Mock client
@@ -50,6 +53,8 @@ class ExampleTest extends TestCase
 	    $this->assertEquals(200, $response->status());
 	    $this->assertEquals('test.com', $request->getUri()->getHost());
 	    $this->assertEquals('GET', $request->getMethod());
+	    Event::assertDispatched('proxy.request: get-test');
+	    Event::assertDispatched('proxy.response: get-test');
     }
 
 	/**
@@ -85,6 +90,7 @@ class ExampleTest extends TestCase
 	 */
     public function testGetRouteError()
     {
+    	Event::fake();
         // 501 to avoid positive on regular 500
         $mock = new MockHandler([
             new Response(501, ['Content-Length' => 0], '{"data": []}'),
@@ -96,6 +102,7 @@ class ExampleTest extends TestCase
 	    $response = $this->call('GET', '/phpunit-get-proxy-test');
 
 	    $this->assertEquals(501, $response->status());
+	    Event::assertDispatched('proxy.error: get-test');
     }
 
 	/**
